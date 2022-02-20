@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="recyc_datetime_width">88dp</dimen>
+    <dimen name="recyc_location_width">168dp</dimen>
+</resources>
