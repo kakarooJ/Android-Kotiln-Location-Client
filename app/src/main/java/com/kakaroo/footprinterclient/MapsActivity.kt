@@ -1,23 +1,28 @@
 package com.kakaroo.footprinterclient
 
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import com.google.android.gms.maps.*
 
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
+import com.google.maps.android.ui.IconGenerator
 import com.kakaroo.footprinterclient.Entity.FootPrinter
 import com.kakaroo.footprinterclient.databinding.ActivityMapsBinding
+import com.kakaroo.footprinterclient.databinding.MarkerLayoutBinding
 
-class GoogleMapsActivity : AppCompatActivity(), OnMapReadyCallback {
+class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+
+    private lateinit var markerbinding: MarkerLayoutBinding
+    private lateinit var mIconGenerator: IconGenerator
 
     var mLocationList : ArrayList<FootPrinter> = ArrayList<FootPrinter>()
 
@@ -27,12 +32,14 @@ class GoogleMapsActivity : AppCompatActivity(), OnMapReadyCallback {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        if(intent.hasExtra(Common.INTENT_VALUE_NAME))
-        {
+        markerbinding = MarkerLayoutBinding.inflate(layoutInflater)
+
+        mIconGenerator = IconGenerator(this)
+        mIconGenerator.setContentView(markerbinding.root)
+
+        if(intent.hasExtra(Common.INTENT_VALUE_NAME)) {
             mLocationList = intent.getSerializableExtra(Common.INTENT_VALUE_NAME) as ArrayList<FootPrinter>
-        }
-        else
-        {
+        } else {
             Log.e(Common.LOG_TAG, "가져온 데이터 없음")
         }
 
@@ -54,47 +61,56 @@ class GoogleMapsActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        // Add a marker in Sydney and move the camera
-
         val latLng = LatLng(mLocationList[Common.LIST_RECENT_INDEX].latitude, mLocationList[Common.LIST_RECENT_INDEX].longitude)
-        val cameraPosition = CameraPosition.Builder()
+        /*val cameraPosition = CameraPosition.Builder()
             .target(latLng)
             .zoom(Common.MAP_ZOOM_VALUE)
-            .build()
+            .build()*/
+
+        var latLngList : ArrayList<LatLng> = ArrayList<LatLng>()
 
         //Marker
         val markerOptions = MarkerOptions()
 
-        val bmMarker: BitmapDrawable = getResources().getDrawable(R.mipmap.marker) as BitmapDrawable
-        val bmRecMarker: BitmapDrawable = getResources().getDrawable(R.mipmap.recent_marker) as BitmapDrawable
-
-        val bm: Bitmap = bmMarker.getBitmap()
-        val bmRec: Bitmap = bmRecMarker.getBitmap()
-
-        val smallMarker: Bitmap = Bitmap.createScaledBitmap(bm, Common.MARKER_WIDTH, Common.MARKER_HEIGHT, false)
-        val smallRecMarker: Bitmap = Bitmap.createScaledBitmap(bmRec, Common.MARKER_WIDTH, Common.MARKER_HEIGHT, false)
-
         mLocationList.forEachIndexed { index, it ->
             if(index == 0) {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallRecMarker))
+                markerbinding.tvMarker.visibility = View.INVISIBLE
+                markerbinding.tvRecentMarker.visibility = View.VISIBLE
+                //markerbinding.tvRecentMarker.text = (index).toString()
+                mIconGenerator.setColor(R.color.location_color)
             } else {
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(smallMarker))
+                markerbinding.tvRecentMarker.visibility = View.INVISIBLE
+                markerbinding.tvMarker.visibility = View.VISIBLE
+                markerbinding.tvMarker.text = (index).toString()
+                mIconGenerator.setColor(Color.TRANSPARENT)
+                //mIconGenerator.setColor(R.color.marker_color)
             }
-            markerOptions.position(LatLng(it.latitude, it.longitude))
-            markerOptions.title((index+1).toString())
-            markerOptions.snippet(it.time)
-            //mMap.addMarker(MarkerOptions().position(latlng).title(mLocationList[0].time))
+
+            markerOptions.icon(BitmapDescriptorFactory.fromBitmap(mIconGenerator.makeIcon()))
+
+            val latLng = LatLng(it.latitude, it.longitude)
+            latLngList.add(latLng)
+
+            markerOptions.position(latLng).title(it.date).snippet(it.time)
             mMap.addMarker((markerOptions))
         }
 
-        mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+        var polylineOptions = PolylineOptions().color(Color.RED/*R.color.polyline_color*/).width(5f).addAll(latLngList)
+        mMap.addPolyline(polylineOptions)
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, Common.MAP_ZOOM_VALUE));
+        //mMap.moveCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
 
         /*
          mMap = googleMap
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         updateLocation()
          */
+
+        var mapUiSettings: UiSettings = mMap.getUiSettings()
+        mapUiSettings.setZoomControlsEnabled(true)  // 줌버튼
     }
+
 /*
     // 위치 정보를 받아오는 역할
     @SuppressLint("MissingPermission") //requestLocationUpdates는 권한 처리가 필요한데 현재 코드에서는 확인 할 수 없음. 따라서 해당 코드를 체크하지 않아도 됨.

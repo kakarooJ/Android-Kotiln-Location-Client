@@ -1,12 +1,16 @@
 package com.kakaroo.footprinterclient
 
 import android.content.DialogInterface
-import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,7 +32,6 @@ import com.kakaroo.footprinterclient.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     //object mFootPrinterList : ArrayList<FootPrinter>() { }
     public var mFootPrinterList : ArrayList<FootPrinter> = ArrayList<FootPrinter>()
-    public var mCurIdx = 0
 
     //var mContext: Context = getActivity()
 
@@ -36,6 +39,7 @@ class MainActivity : AppCompatActivity() {
     var mAdapter = RecyclerAdapter(this, mFootPrinterList)
     lateinit var mRecyclerView: RecyclerView
     lateinit var mLayoutManager: RecyclerView.LayoutManager
+    lateinit var mPref: SharedPreferences
 
     //전역변수로 binding 객체선언
     private var mBinding: ActivityMainBinding? = null
@@ -60,12 +64,49 @@ class MainActivity : AppCompatActivity() {
         mRecyclerView.setLayoutManager(mLayoutManager)
         binding.recyclerView.adapter = mAdapter
 
+        mPref = getSharedPreferences(Common.SHARED_PREF_NAME, 0)
+
         registerListener()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.option_menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.setting_url -> {
+                val builder = AlertDialog.Builder(this)
+                val builderItem = layoutInflater.inflate(R.layout.alert_dialog_edit_text, null)
+                val editText = builderItem.findViewById<EditText>(R.id.editText)
+                val url_value: String? = mPref.getString(Common.URL_PREF_KEY, Common.DEFAULT_URL)
+                val editor = mPref.edit()
+
+                with(builder){
+                    setTitle("URL 설정")
+                    setView(builderItem)
+                    editText.setText(url_value)
+                    setPositiveButton("OK"){ dialogInterface: DialogInterface, i: Int ->
+                        if(editText.text != null) {
+                            editor.putString(Common.URL_PREF_KEY, editText.text.toString())
+                            editor.apply()
+                            Toast.makeText(this.context
+                                , "입력된 URL : ${editText.text}"
+                                , Toast.LENGTH_LONG)
+                                .show()
+                        }
+                    }
+                    show()
+                }
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     fun registerListener() {
         binding.btRead.setOnClickListener(ButtonListener())
-        binding.btMultiSelect.setOnClickListener(ButtonListener())
+        binding.btDeleteAll.setOnClickListener(ButtonListener())
     }
 
     inner class ButtonListener : View.OnClickListener {
@@ -78,9 +119,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     R.id.bt_delete -> {
                         executeHttpRequest(Common.HTTP_DELETE, 0)
+                        System.out.println("ButtonListener DELETE")
                     }
-                    R.id.bt_multi_select -> {
-
+                    R.id.bt_delete_all -> {
+                        executeHttpRequest(Common.HTTP_DELETE_ALL, 0)
+                        mFootPrinterList.clear()
                     }
                 }
             }
@@ -95,13 +138,16 @@ class MainActivity : AppCompatActivity() {
         val th = Thread {
 
             try {
+                val url_value: String? = mPref.getString(Common.URL_PREF_KEY, Common.DEFAULT_URL)
                 var page =
-                    Common.DEFAULT_URL + Common.URL_SLASH + Common.HTTP_REQ_METHOD_LIST[method].toLowerCase()
+                    url_value/*Common.DEFAULT_URL*/ + Common.URL_SLASH + Common.HTTP_REQ_METHOD_LIST[method].toLowerCase()
 
                 if(method == Common.HTTP_GET || method == Common.HTTP_PUT || method == Common.HTTP_DELETE) {
                     page += Common.URL_SLASH + id.toString()
                 } else if(method == Common.HTTP_GET_ALL) {
                     page += Common.URL_SLASH + Common.HTTP_REQ_POSTFIX_GET_ALL
+                } else if(method == Common.HTTP_DELETE_ALL) {
+                    page += Common.URL_SLASH + Common.HTTP_REQ_POSTFIX_DELETE_ALL
                 }
 
                 var bNeedRequestParam: Boolean = false
@@ -110,7 +156,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 var bJsonResponseParam: Boolean = true
-                if (method == Common.HTTP_POST || method == Common.HTTP_PUT || method == Common.HTTP_DELETE) {
+                if (method == Common.HTTP_POST || method == Common.HTTP_PUT || method == Common.HTTP_DELETE || method == Common.HTTP_DELETE_ALL) {
                     bJsonResponseParam = false
                 }
 
@@ -200,7 +246,6 @@ class MainActivity : AppCompatActivity() {
                             result + sb.toString()
                         } else {    //return 값이 JSON 이다.
                             mFootPrinterList.clear()    //이전 데이터를 클리어한다
-                            mCurIdx = 0
                             //{"id":2,"time":"2022-02-18T12:18:20","latitude":"37.4083871","longitude":"127.0688526"}
                             // 안드로이드에서 기본적으로 제공하는 JSONObject로 JSON을 파싱
                             // getAll인 경우 JsonArray 형태이므로
@@ -209,20 +254,26 @@ class MainActivity : AppCompatActivity() {
                                 for (i in 0 until jsonArray.length()) {
                                     val jsonObject = jsonArray.getJSONObject(i)
                                     val id = jsonObject.getLong("id")
-                                    val time = jsonObject.getString("time")
+                                    val timeData = jsonObject.getString("time")
+                                    val str_arr = timeData.split(" ")
+                                    val date_str = str_arr[0]
+                                    val time = if(str_arr.size > 1) str_arr[1] else "wrong"//.substring(0, str_arr[1].length-2)
                                     val latitude = jsonObject.getDouble("latitude")
                                     val longitude = jsonObject.getDouble("longitude")
                                     result += "time: "+ time + "\nlatitude: " + latitude + "\nlongitude: " + longitude +"\n"
-                                    mFootPrinterList?.add(FootPrinter(id = id, time = time, latitude = latitude, longitude = longitude))
+                                    mFootPrinterList?.add(FootPrinter(id = id, date = date_str, time = time, latitude = latitude, longitude = longitude))
                                 }
                             } else {
                                 val jsonObject = JSONObject(sb.toString())
                                 val id = jsonObject.getLong("id")
-                                val time = jsonObject.getString("time")
+                                val timeData = jsonObject.getString("time")
+                                val str_arr = timeData.split(" ")
+                                val date_str = str_arr[0]
+                                val time = if(str_arr.size > 1) str_arr[1] else "wrong"//.substring(0, str_arr[1].length-2)
                                 val latitude = jsonObject.getDouble("latitude")
                                 val longitude = jsonObject.getDouble("longitude")
                                 result += "time: "+ time + "\nlatitude: " + latitude + "\nlongitude: " + longitude +"\n"
-                                mFootPrinterList?.add(FootPrinter(id = id, time = time, latitude = latitude, longitude = longitude))
+                                mFootPrinterList?.add(FootPrinter(id = id, date = date_str, time = time, latitude = latitude, longitude = longitude))
                             }
                             mFootPrinterList.reverse()
                         }

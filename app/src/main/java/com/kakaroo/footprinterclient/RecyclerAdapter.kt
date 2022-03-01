@@ -1,10 +1,8 @@
 package com.kakaroo.footprinterclient
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
-import android.provider.Settings.Global.getString
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,10 +11,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.core.content.PermissionChecker.checkSelfPermission
 import androidx.recyclerview.widget.RecyclerView
-import com.kakaroo.footprinterclient.R
 import com.kakaroo.footprinterclient.Entity.FootPrinter
 import android.content.Intent
 
@@ -27,6 +22,8 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
     : RecyclerView.Adapter<RecyclerAdapter.Holder>() {
 
     val mContext: Context = context
+    var mCurIdx = 0
+    //var index = 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val view = LayoutInflater.from(parent.context)
@@ -62,14 +59,15 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
         private val tv_latitude: TextView = itemView.findViewById(R.id.tv_latitude)
         private val tv_longitude: TextView = itemView.findViewById(R.id.tv_longitude)
 
+
         fun setItem(footPrinter: FootPrinter) {
             var blongClick = false
-            var str_arr = footPrinter.time.toString().split(" ")   //"time": "2022-02-18 12:18:20"
+            //index += 1
+            //tv_id.text = index.toString()
             tv_id.text = footPrinter.id.toString()
-            if(str_arr != null && str_arr.size >= 2) {
-                tv_date.text = str_arr[0]
-                tv_time.text = str_arr[1]
-            }
+
+            tv_date.text = footPrinter.date.toString()
+            tv_time.text = footPrinter.time.toString()
             tv_latitude.text = context.getResources().getString(R.string.latitude) + ": " + footPrinter.latitude.toString()
             tv_longitude.text = context.getResources().getString(R.string.longitude) + ": " + footPrinter.longitude.toString()
 
@@ -78,8 +76,8 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
                 if(blongClick) {    //롱클릭이후 클릭이벤트도 불리기 때문에 중복처리 방지를 위해,, 다른 방법이 있을 것 같은데..
                     blongClick = false
                 } else {
-                    MainActivity().mCurIdx = adapterPosition
-                    Log.d(Common.LOG_TAG, "setOnClickListener called")
+                    mCurIdx = adapterPosition
+                    Log.d(Common.LOG_TAG, "setOnClickListener:[$mCurIdx] called")
 
                     if( (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION)
                             != PackageManager.PERMISSION_GRANTED)
@@ -113,10 +111,15 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
     }
 
     fun callMapActivity() {
-        val intent = Intent(mContext, GoogleMapsActivity::class.java)
+        val intent = Intent(mContext, MapsActivity::class.java)
         var data : ArrayList<FootPrinter> = ArrayList<FootPrinter>()
-        //TODO : Select 된 것들을 분류해서 저장
-        listData?.forEach { data.add(it) }
+
+        listData?.filterIndexed { index, item ->  index >= mCurIdx && data.add(item)}
+
+        /*for(item in listData?.get(MainActivity().mCurIdx)..listData?.last()) {
+            data.add(item)
+        }*/
+        //listData?.forEach { data.add(it) }
         //listData?.get(MainActivity().mCurIdx)?.let { it1 -> data.add(it1) }
         intent.putExtra(Common.INTENT_VALUE_NAME, data)
         context.startActivity(intent) //액티비티 열기

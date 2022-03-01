@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class FootPrinter(var id: Long, var time: String?, var latitude: Double, var longitude: Double) : Parcelable {
+data class FootPrinter(var id: Long, var date: String?, var time: String?, var latitude: Double, var longitude: Double) : Parcelable {
 /*    constructor(parcel: Parcel) : this(
         parcel.readLong(),
         parcel.readString(),

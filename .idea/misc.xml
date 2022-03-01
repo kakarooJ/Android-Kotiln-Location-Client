@@ -4,9 +4,13 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/twins/AndroidStudioProjects/FootPrinterClient/app/src/main/res/drawable/item_border.xml" value="0.14583333333333334" />
+        <entry key="..\:/Users/twins/AndroidStudioProjects/FootPrinterClient/app/src/main/res/drawable/marker.xml" value="0.13229166666666667" />
         <entry key="..\:/Users/twins/AndroidStudioProjects/FootPrinterClient/app/src/main/res/layout/activity_main.xml" value="0.15052083333333333" />
         <entry key="..\:/Users/twins/AndroidStudioProjects/FootPrinterClient/app/src/main/res/layout/activity_maps.xml" value="0.1296875" />
+        <entry key="..\:/Users/twins/AndroidStudioProjects/FootPrinterClient/app/src/main/res/layout/alert_dialog_edit_text.xml" value="0.13072916666666667" />
         <entry key="..\:/Users/twins/AndroidStudioProjects/FootPrinterClient/app/src/main/res/layout/item_recycler.xml" value="0.536" />
+        <entry key="..\:/Users/twins/AndroidStudioProjects/FootPrinterClient/app/src/main/res/layout/marker_layout.xml" value="0.536" />
+        <entry key="..\:/Users/twins/AndroidStudioProjects/FootPrinterClient/app/src/main/res/menu/option_menu.xml" value="0.13072916666666667" />
         <entry key="..\:/Users/twins/AndroidStudioProjects/LocationClient/app/src/main/res/layout/activity_main.xml" value="0.225" />
         <entry key="..\:/Users/twins/AndroidStudioProjects/LocationClient/app/src/main/res/layout/item_recycler.xml" value="0.264" />
       </map>

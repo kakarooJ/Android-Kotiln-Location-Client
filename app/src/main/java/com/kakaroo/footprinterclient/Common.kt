@@ -10,19 +10,24 @@ object Common {
     val HTTP_PUT                :   Int     = 2
     val HTTP_DELETE             :   Int     = 3
     val HTTP_GET_ALL            :   Int     = 4
+    val HTTP_DELETE_ALL         :   Int     = 5
+
+    val SHARED_PREF_NAME        :   String  = "shared_pref"
 
     val URL_SLASH               :   String  = "/"
-    val DEFAULT_URL             :   String  = "http://10.0.2.2:8080"//"http://127.0.0.1:8080"
+    val DEFAULT_URL             :   String  = "http://192.168.219.111:8080"//"http://10.0.2.2:8080"//"http://127.0.0.1:8080"
+    val URL_PREF_KEY            :   String  = "url_key"
 
     val HTTP_REQ_METHOD_POST    :   String     = "POST"
     val HTTP_REQ_METHOD_GET     :   String     = "GET"
     val HTTP_REQ_METHOD_PUT     :   String     = "PUT"
     val HTTP_REQ_METHOD_DELETE  :   String     = "DELETE"
-    val HTTP_REQ_METHOD_LIST = arrayOf<String>(HTTP_REQ_METHOD_POST, HTTP_REQ_METHOD_GET, HTTP_REQ_METHOD_PUT, HTTP_REQ_METHOD_DELETE, HTTP_REQ_METHOD_GET)
+    val HTTP_REQ_METHOD_LIST = arrayOf<String>(HTTP_REQ_METHOD_POST, HTTP_REQ_METHOD_GET, HTTP_REQ_METHOD_PUT, HTTP_REQ_METHOD_DELETE, HTTP_REQ_METHOD_GET, HTTP_REQ_METHOD_DELETE)
 
     val HTTP_REQ_POSTFIX_GET_ALL :   String     = "list"
+    val HTTP_REQ_POSTFIX_DELETE_ALL : String    = "all"
 
-    val HTTP_CONNECT_TIMEOUT     :   Int     = 10000
+    val HTTP_CONNECT_TIMEOUT     :   Int     = 100000
 
 
     val MY_PERMISSION_LOCATION_ACCESS_ALL    =   100
@@ -34,9 +39,9 @@ object Common {
 
     val INTENT_VALUE_NAME           :   String      = "VALUE"
 
-    val MARKER_WIDTH                :   Int     = 40
-    val MARKER_HEIGHT               :   Int     = 40
-    val MAP_ZOOM_VALUE              :   Float   = 16.0f
+    val MARKER_WIDTH                :   Int     = 160
+    val MARKER_HEIGHT               :   Int     = 160
+    val MAP_ZOOM_VALUE              :   Float   = 15.0f
 
     val LIST_RECENT_INDEX           :   Int     = 0
 }
