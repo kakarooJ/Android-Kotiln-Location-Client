@@ -24,10 +24,19 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
     val mContext: Context = context
     var mCurIdx = 0
     //var index = 0
+    var mStrUrl: String = ""
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_recycler,parent,false)
+
+        val pref = mContext.getSharedPreferences(Common.SHARED_PREF_NAME, 0)
+        val urlvalue: String? = pref.getString(Common.URL_PREF_KEY, Common.DEFAULT_URL)
+        if (urlvalue != null) {
+            mStrUrl = urlvalue
+        } else {
+            mStrUrl = Common.DEFAULT_URL
+        }
         return Holder(view).apply {
             //삭제버튼 클릭시 이벤트
             itemView.findViewById<Button>(R.id.bt_delete).setOnClickListener {
@@ -35,7 +44,7 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
                 //강제로 null을 허용하기 위해 !! 사용
                 var id : Long = listData?.get(cursor)?.id ?: -1L
                 if(id != -1L) {
-                    MainActivity().executeHttpRequest(Common.HTTP_DELETE, id)
+                    MainActivity().executeHttpRequest(mStrUrl, Common.HTTP_DELETE, id)
                 }
                 listData?.remove(listData?.get(cursor))
                 notifyDataSetChanged()

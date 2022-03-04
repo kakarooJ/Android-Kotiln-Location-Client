@@ -126,13 +126,13 @@ class MainActivity : AppCompatActivity() {
                 var methodType : Int = Common.HTTP_POST
                 when(v.id) {
                     R.id.bt_read -> {
-                        executeHttpRequest(Common.HTTP_GET_ALL, 0)
+                        executeHttpRequest(mStrUrl, Common.HTTP_GET_ALL, 0)
                     }
                     R.id.bt_delete -> {
-                        executeHttpRequest(Common.HTTP_DELETE, 0)
+                        executeHttpRequest(mStrUrl, Common.HTTP_DELETE, 0)
                     }
                     R.id.bt_delete_all -> {
-                        executeHttpRequest(Common.HTTP_DELETE_ALL, 0)
+                        executeHttpRequest(mStrUrl, Common.HTTP_DELETE_ALL, 0)
                         mFootPrinterList.clear()
                     }
                 }
@@ -140,7 +140,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    public fun executeHttpRequest(method : Int, id : Long) {
+    public fun executeHttpRequest(url: String, method: Int, id: Long) {
         //Result Text View에 출력할 Output
         var result : String = ""
 
@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
 
             try {
                 var page =
-                    mStrUrl/*Common.DEFAULT_URL*/ + Common.URL_SLASH + Common.HTTP_REQ_METHOD_LIST[method].toLowerCase()
+                    url/*Common.DEFAULT_URL*/ + Common.URL_SLASH + Common.HTTP_REQ_METHOD_LIST[method].toLowerCase()
 
                 if(method == Common.HTTP_GET || method == Common.HTTP_PUT || method == Common.HTTP_DELETE) {
                     page += Common.URL_SLASH + id.toString()
