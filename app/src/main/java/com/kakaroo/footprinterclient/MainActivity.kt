@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity() {
     // 매번 null 체크를 할 필요 없이 편의성을 위해 바인딩 변수 재 선언
     private val binding get() = mBinding!!
 
+    var mStrUrl: String = ""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //setContentView(R.layout.activity_main)
@@ -65,6 +67,12 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerView.adapter = mAdapter
 
         mPref = getSharedPreferences(Common.SHARED_PREF_NAME, 0)
+        val urlvalue: String? = mPref.getString(Common.URL_PREF_KEY, Common.DEFAULT_URL)
+        if (urlvalue != null) {
+            mStrUrl = urlvalue
+        } else {
+            mStrUrl = Common.DEFAULT_URL
+        }
 
         registerListener()
     }
@@ -80,13 +88,16 @@ class MainActivity : AppCompatActivity() {
                 val builder = AlertDialog.Builder(this)
                 val builderItem = layoutInflater.inflate(R.layout.alert_dialog_edit_text, null)
                 val editText = builderItem.findViewById<EditText>(R.id.editText)
-                val url_value: String? = mPref.getString(Common.URL_PREF_KEY, Common.DEFAULT_URL)
+                val urlvalue: String? = mPref.getString(Common.URL_PREF_KEY, Common.DEFAULT_URL)
+                if (urlvalue != null) {
+                    mStrUrl = urlvalue
+                }
                 val editor = mPref.edit()
 
                 with(builder){
                     setTitle("URL 설정")
                     setView(builderItem)
-                    editText.setText(url_value)
+                    editText.setText(urlvalue)
                     setPositiveButton("OK"){ dialogInterface: DialogInterface, i: Int ->
                         if(editText.text != null) {
                             editor.putString(Common.URL_PREF_KEY, editText.text.toString())
@@ -119,7 +130,6 @@ class MainActivity : AppCompatActivity() {
                     }
                     R.id.bt_delete -> {
                         executeHttpRequest(Common.HTTP_DELETE, 0)
-                        System.out.println("ButtonListener DELETE")
                     }
                     R.id.bt_delete_all -> {
                         executeHttpRequest(Common.HTTP_DELETE_ALL, 0)
@@ -138,9 +148,8 @@ class MainActivity : AppCompatActivity() {
         val th = Thread {
 
             try {
-                val url_value: String? = mPref.getString(Common.URL_PREF_KEY, Common.DEFAULT_URL)
                 var page =
-                    url_value/*Common.DEFAULT_URL*/ + Common.URL_SLASH + Common.HTTP_REQ_METHOD_LIST[method].toLowerCase()
+                    mStrUrl/*Common.DEFAULT_URL*/ + Common.URL_SLASH + Common.HTTP_REQ_METHOD_LIST[method].toLowerCase()
 
                 if(method == Common.HTTP_GET || method == Common.HTTP_PUT || method == Common.HTTP_DELETE) {
                     page += Common.URL_SLASH + id.toString()
