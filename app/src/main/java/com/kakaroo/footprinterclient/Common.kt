@@ -15,7 +15,7 @@ object Common {
     val SHARED_PREF_NAME        :   String  = "shared_pref"
 
     val URL_SLASH               :   String  = "/"
-    val DEFAULT_URL             :   String  = "http://192.168.219.111:8080"//"http://10.0.2.2:8080"//"http://127.0.0.1:8080"
+    val DEFAULT_URL             :   String  = "http://3.35.40.166:8080"//"http://192.168.219.111:8080"//"http://10.0.2.2:8080"//"http://127.0.0.1:8080"
     val URL_PREF_KEY            :   String  = "url_key"
 
     val HTTP_REQ_METHOD_POST    :   String     = "POST"
