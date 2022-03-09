@@ -1,6 +1,8 @@
 package com.kakaroo.footprinterclient
 
 import android.graphics.Color
+import android.location.Address
+import android.location.Geocoder
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +17,8 @@ import com.google.maps.android.ui.IconGenerator
 import com.kakaroo.footprinterclient.Entity.FootPrinter
 import com.kakaroo.footprinterclient.databinding.ActivityMapsBinding
 import com.kakaroo.footprinterclient.databinding.MarkerLayoutBinding
+import java.util.*
+import kotlin.collections.ArrayList
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -89,9 +93,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             markerOptions.icon(BitmapDescriptorFactory.fromBitmap(mIconGenerator.makeIcon()))
 
             val latLng = LatLng(it.latitude, it.longitude)
+            val address = getAddress(latLng)
             latLngList.add(latLng)
 
-            markerOptions.position(latLng).title(it.date).snippet(it.time)
+            //markerOptions.position(latLng).title(it.date).snippet(it.time)
+            markerOptions.position(latLng).title(address).snippet(it.date + " " + it.time)
             mMap.addMarker((markerOptions))
         }
 
@@ -109,6 +115,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         var mapUiSettings: UiSettings = mMap.getUiSettings()
         mapUiSettings.setZoomControlsEnabled(true)  // 줌버튼
+    }
+
+    private fun getAddress(position: LatLng): String {
+        Log.i(Common.LOG_TAG, "position: ${position.latitude}, ${position.longitude}");
+        val geoCoder = Geocoder(this, Locale.getDefault())
+        val address =
+            geoCoder.getFromLocation(position.latitude, position.longitude, 1).first()
+                .getAddressLine(0)
+
+        Log.i(Common.LOG_TAG, "getAddress: "+address)
+        return address
     }
 
 /*

@@ -176,12 +176,10 @@ class MainActivity : AppCompatActivity() {
                 // 연결 객체 생성
                 val httpConn: HttpURLConnection = url.openConnection() as HttpURLConnection
 
-                // Post 파라미터
-                //val params = ("param=1"
-                //        + "¶m2=2" + "sale")
-
                 // 결과값 저장 문자열
                 val sb = StringBuilder()
+
+                var bEmptyValue = false
 
                 // 연결되면
                 if (httpConn != null) {
@@ -193,34 +191,6 @@ class MainActivity : AppCompatActivity() {
                     httpConn.setConnectTimeout(Common.HTTP_CONNECT_TIMEOUT)
                     // POST 요청방식
                     httpConn.setRequestMethod(Common.HTTP_REQ_METHOD_LIST[method])
-
-                    // 포스트 파라미터 전달
-                    //httpConn.getOutputStream().write(params.toByteArray(charset("utf-8")))
-
-                    //--------------------------
-                    //   서버로 값 전송
-                    //--------------------------
-                    /*if(bNeedRequestParam) {
-                        var json : String = ""
-                        // build jsonObject
-                        val jsonObject = JSONObject()
-                        jsonObject.accumulate("title", binding.etTitle.text.toString())
-                        jsonObject.accumulate("content", binding.etContent.text.toString())
-                        jsonObject.accumulate("author", binding.etAuthor.text.toString())
-
-                        // convert JSONObject to JSON to String
-                        json = jsonObject.toString()
-
-                        // OutputStream으로 POST 데이터를 넘겨주겠다는 옵션.
-                        httpConn.doOutput = true
-                        // InputStream으로 서버로 부터 응답을 받겠다는 옵션.
-                        httpConn.doInput = true
-
-                        val os : OutputStream = httpConn.outputStream
-                        os.write(json.toByteArray(Charsets.UTF_8))
-                        os.flush()
-                        os.close()
-                    }*/
 
                     // url에 접속 성공하면 (200)
                     var status : Int = try {
@@ -260,17 +230,21 @@ class MainActivity : AppCompatActivity() {
                             // getAll인 경우 JsonArray 형태이므로
                             if(method == Common.HTTP_GET_ALL) {
                                 val jsonArray = JSONTokener(sb.toString()).nextValue() as JSONArray
-                                for (i in 0 until jsonArray.length()) {
-                                    val jsonObject = jsonArray.getJSONObject(i)
-                                    val id = jsonObject.getLong("id")
-                                    val timeData = jsonObject.getString("time")
-                                    val str_arr = timeData.split(" ")
-                                    val date_str = str_arr[0]
-                                    val time = if(str_arr.size > 1) str_arr[1] else "wrong"//.substring(0, str_arr[1].length-2)
-                                    val latitude = jsonObject.getDouble("latitude")
-                                    val longitude = jsonObject.getDouble("longitude")
-                                    result += "time: "+ time + "\nlatitude: " + latitude + "\nlongitude: " + longitude +"\n"
-                                    mFootPrinterList?.add(FootPrinter(id = id, date = date_str, time = time, latitude = latitude, longitude = longitude))
+                                if(jsonArray.length() == 0) {
+                                    bEmptyValue = true
+                                } else {
+                                    for (i in 0 until jsonArray.length()) {
+                                        val jsonObject = jsonArray.getJSONObject(i)
+                                        val id = jsonObject.getLong("id")
+                                        val timeData = jsonObject.getString("time")
+                                        val str_arr = timeData.split(" ")
+                                        val date_str = str_arr[0]
+                                        val time = if(str_arr.size > 1) str_arr[1] else "wrong"//.substring(0, str_arr[1].length-2)
+                                        val latitude = jsonObject.getDouble("latitude")
+                                        val longitude = jsonObject.getDouble("longitude")
+                                        result += "time: "+ time + "\nlatitude: " + latitude + "\nlongitude: " + longitude +"\n"
+                                        mFootPrinterList?.add(FootPrinter(idx = i+1, id = id, date = date_str, time = time, latitude = latitude, longitude = longitude))
+                                    }
                                 }
                             } else {
                                 val jsonObject = JSONObject(sb.toString())
@@ -282,7 +256,7 @@ class MainActivity : AppCompatActivity() {
                                 val latitude = jsonObject.getDouble("latitude")
                                 val longitude = jsonObject.getDouble("longitude")
                                 result += "time: "+ time + "\nlatitude: " + latitude + "\nlongitude: " + longitude +"\n"
-                                mFootPrinterList?.add(FootPrinter(id = id, date = date_str, time = time, latitude = latitude, longitude = longitude))
+                                mFootPrinterList?.add(FootPrinter(idx = 1, id = id, date = date_str, time = time, latitude = latitude, longitude = longitude))
                             }
                             mFootPrinterList.reverse()
                         }
@@ -294,7 +268,9 @@ class MainActivity : AppCompatActivity() {
                 //백그라운드 스레드에서는 메인화면을 변경 할 수 없음
                 // runOnUiThread(메인 스레드영역)
                 runOnUiThread {
-                    //Toast.makeText(applicationContext, "응답$sb", Toast.LENGTH_SHORT).show()
+                    if(bEmptyValue) {
+                        Toast.makeText(applicationContext, "저장된 값이 없습니다.", Toast.LENGTH_SHORT).show()
+                    }
                     mAdapter.notifyDataSetChanged()
                 }
             } catch (e: Exception) {
@@ -341,7 +317,7 @@ class MainActivity : AppCompatActivity() {
     // 권한이 있는 경우 실행
     fun permissionGranted(requestCode: Int) {
         if(requestCode == Common.MY_PERMISSION_LOCATION_ACCESS_ALL) {
-            mAdapter.callMapActivity() // 권한이 있는 경우 구글 지도를준비하는 코드 실행
+            mAdapter.callMapActivity(false) // 권한이 있는 경우 구글 지도를준비하는 코드 실행
         }
     }
 

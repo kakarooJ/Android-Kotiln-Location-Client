@@ -73,7 +73,7 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
             var blongClick = false
             //index += 1
             //tv_id.text = index.toString()
-            tv_id.text = footPrinter.id.toString()
+            tv_id.text = footPrinter.idx.toString()//footPrinter.id.toString()
 
             tv_date.text = footPrinter.date.toString()
             tv_time.text = footPrinter.time.toString()
@@ -95,7 +95,7 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
                         ActivityCompat.requestPermissions(context as Activity, Common.MAP_PERMISSIONS, Common.MY_PERMISSION_LOCATION_ACCESS_ALL)
                     } else {
                         //MainActivity().permissionGranted(Common.MY_PERMISSION_LOCATION_ACCESS_ALL)
-                        callMapActivity()
+                        callMapActivity(false)
                         /*
                         val intent = Intent(context, GoogleMapsActivity::class.java)
                         var data : ArrayList<FootPrinter> = ArrayList<FootPrinter>()
@@ -109,27 +109,37 @@ class RecyclerAdapter(private val context: Context, val listData: ArrayList<Foot
 
             itemView.setOnLongClickListener(OnLongClickListener { _ ->
                 blongClick = true
-                val position = adapterPosition
+                /*val position = adapterPosition
                 Log.d(Common.LOG_TAG, "setOnLongClickListener called, position: $position")
                 if (position != RecyclerView.NO_POSITION) {
                     //a_itemLongClickListener.onItemLongClick(a_view, position)
                 }
-                false
+                false*/
+                mCurIdx = adapterPosition
+                Log.d(Common.LOG_TAG, "setOnClickListener:[$mCurIdx] called")
+
+                if( (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED)
+                    || (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                            != PackageManager.PERMISSION_GRANTED) ){
+                    ActivityCompat.requestPermissions(context as Activity, Common.MAP_PERMISSIONS, Common.MY_PERMISSION_LOCATION_ACCESS_ALL)
+                } else {
+                    callMapActivity(true)
+                }
+                true
             })
         }
     }
 
-    fun callMapActivity() {
+    fun callMapActivity(longClick: Boolean) {
         val intent = Intent(mContext, MapsActivity::class.java)
         var data : ArrayList<FootPrinter> = ArrayList<FootPrinter>()
 
-        listData?.filterIndexed { index, item ->  index >= mCurIdx && data.add(item)}
-
-        /*for(item in listData?.get(MainActivity().mCurIdx)..listData?.last()) {
-            data.add(item)
-        }*/
-        //listData?.forEach { data.add(it) }
-        //listData?.get(MainActivity().mCurIdx)?.let { it1 -> data.add(it1) }
+        if(longClick) { //longclick시 선택한 값만 구글맵으로 넘겨준다.
+            listData?.get(mCurIdx)?.let { data.add(it) }
+        } else {
+            listData?.filterIndexed { index, item ->  index >= mCurIdx && data.add(item)}
+        }
         intent.putExtra(Common.INTENT_VALUE_NAME, data)
         context.startActivity(intent) //액티비티 열기
     }
