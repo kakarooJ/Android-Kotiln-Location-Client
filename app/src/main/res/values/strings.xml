@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My FootPrints Client</string>
+    <string name="app_name">FootPrints Client</string>
     <string name="latitude">위도</string>
     <string name="longitude">경도</string>
     <string name="title_activity_maps">지도</string>
